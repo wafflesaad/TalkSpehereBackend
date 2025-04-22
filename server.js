@@ -6,10 +6,15 @@ import connectDB from './config/mongodb.js';
 import authRouter from './routes/authRoutes.js'
 import userRouter from './routes/userRoutes.js';
 import callRouter from './routes/callRouter.js';
+import { handleSocketConnections } from './config/socketConfig.js';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 const app = express()
-const server = require('http').Server(app);
-export const io = require('socket.io')(server)
+const server = createServer(app)
+const io = new Server(server)
+handleSocketConnections(io)
+
 
 const port = process.env.PORT || 4000
 connectDB();
@@ -31,6 +36,7 @@ app.use('/api/user',userRouter);
 app.use('/api/call', callRouter);
 
 server.listen(port,()=>console.log(`Server started on ${port}`))
+export default io;
 
 
 
