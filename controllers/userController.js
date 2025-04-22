@@ -19,6 +19,7 @@ export const getUserData = async (req,res)=>{
         });
 
     }catch(e){
+        alert("Error fetching user data")
         res.json({success: false, message: e.message})
     }
 }
