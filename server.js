@@ -6,7 +6,6 @@ import connectDB from './config/mongodb.js';
 import authRouter from './routes/authRoutes.js'
 import userRouter from './routes/userRoutes.js';
 import callRouter from './routes/callRouter.js';
-import { handleSocketConnections } from './config/socketConfig.js';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 

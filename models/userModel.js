@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema({
     isAccountVerified: {type: Boolean, default:false},
     resetOtp: {type: String, default: ''},
     resetOtpExpireAt: {type: Number, default: 0},
+    friendList: [{type: mongoose.Schema.ObjectId}],
+    pendingRequests: [{type: mongoose.Schema.ObjectId}]
 })
 
 const userModel = mongoose.models.user || mongoose.model('user', userSchema)
