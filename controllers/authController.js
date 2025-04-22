@@ -241,6 +241,8 @@ export const sendPassResetOtp = async (req,res)=>{
 
 
     }catch(err){
+        console.error("Error in sendPassResetOtp:", err); // Log the full error details
+
         return res.json({success:false, message:err.message})
     }
 

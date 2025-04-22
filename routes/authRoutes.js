@@ -9,15 +9,15 @@ authRouter.post('/register', register);
 
 authRouter.post('/login', login);
 
-authRouter.post('/logout', logout);
+authRouter.post('/send_reset_otp',sendPassResetOtp);
 
 authRouter.post('/send_verify_otp',userAuth, sendVerifyOtp);
+
+authRouter.post('/logout', logout);
 
 authRouter.post('/verify_email',userAuth, verifyEmail);
 
 authRouter.post('/is_auth',userAuth, isAuthenticated);
-
-authRouter.post('/send_reset_otp',sendPassResetOtp);
 
 authRouter.post('/reset_pass', resetPass);
 
