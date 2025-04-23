@@ -114,53 +114,58 @@ export const logout = async (req,res)=>{
     }
 }
 
-export const sendVerifyOtp = async (req,res)=>{
-    
-    try{
+export const sendVerifyOtp = async (req, res) => {
+    try {
+        // Access userID from req.userID, not req.body
+        const { userID } = req; 
 
-        const {userID} = req.body
+        const user = await userModel.findById(userID);
 
-        const user = await userModel.findById(userID)
-
-        if (!user){
-            return res.json({success:false, message:"user not found"})
+        if (!user) {
+            return res.json({ success: false, message: "User not found" });
         }
 
-        if (user.isAccountVerified){
-            return res.json({success:false, message:"account already verified"})
+        if (user.isAccountVerified) {
+            return res.json({ success: false, message: "Account already verified" });
         }
 
-        const otp = String(Math.floor(100000 + Math.random()*900000))
+        const otp = String(Math.floor(100000 + Math.random() * 900000));
 
         user.verifyOtp = otp;
+        user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000;
 
-        user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000
-
-        user.save()
+        await user.save();
 
         const mailOptions = {
             from: process.env.SENDER_EMAIL,
             to: user.email,
             subject: "Verify Email",
-            text: `Your verification otp is ${otp}.`
-        }
+            text: `Your verification otp is ${otp}.`,
+        };
 
-        await transporter.sendMail(mailOptions)
+        await transporter.sendMail(mailOptions);
 
-        return res.json({success:true, message:"Otp sent to email."})
+        return res.json({ success: true, message: "Otp sent to email." });
 
-    }catch(err){
-        return res.json({success:false, message:err.message})
+    } catch (err) {
+        return res.json({ success: false, message: err.message });
     }
-
 };
 
 export const verifyEmail = async (req,res)=>{
-    const {userID,otp} = req.body;
+    console.log(req.body);
+    const {otp} = req.body;
+    const userID  = req.userID; 
+    console.log(req.userID);
 
-    if(!userID || !otp){
-        return res.json({success:false, message:"incomplete body"})
+
+    if(!userID){
+        return res.json({success:false, message:"not user id"})
     }
+    if(!otp){
+        return res.json({success:false, message:"not otp"})
+    }
+
 
     try{
 
