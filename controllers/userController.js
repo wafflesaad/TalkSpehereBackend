@@ -39,7 +39,7 @@ export const sendFriendRequest = async (req,res)=>{
         const fromUser = await userModel.findById(userId);
         const toUser = await userModel.findOne({email:toEmail});
 
-        toUser.penddingRequests.push(fromUser._id);
+        toUser.pendingRequests.push(fromUser._id);
 
         await toUser.save();
 
@@ -49,6 +49,43 @@ export const sendFriendRequest = async (req,res)=>{
     catch(e){
         res.json({success:false, message: e.message})
     }
+}
+export const getFriendList = async (req,res)=>{
+
+    try{
+        const userId = req.userID;
+
+        const user = await userModel.findById(userId);
+
+        if (!user){
+            return res.json({success: false, message: "Couldn't find user"})
+        }
+
+        const friendIds = user.friendList;
+
+        if (!friendIds){
+            return res.json({success: false, message: "Couldn't find requests"})
+        } else if(friendIds.length == 0){
+            return res.json({success:false, message: "No friends"})
+        }
+
+        let friendEmails = []
+
+        for (var friendId of friendIds){
+
+            const tuser = await userModel.findById(friendId);
+
+            friendEmails.push(tuser.email);
+
+        }
+
+        return res.json({success: true, friends: friendEmails});
+
+    } catch(e){
+        res.json({success: false, message: e.message})
+    }
+    
+
 }
 
 export const getFriendRequests = async (req,res)=>{
@@ -72,7 +109,7 @@ export const getFriendRequests = async (req,res)=>{
 
         let requestEmails = []
 
-        for (requestId in requestIds){
+        for (var requestId of requestIds){
 
             const tuser = await userModel.findById(requestId);
 
@@ -89,12 +126,29 @@ export const getFriendRequests = async (req,res)=>{
 
 }
 
-
 export const acceptFriendRequest = async (req,res)=>{
 
-    const userId = req.userID;
 
-    const fromId = req.body.from;
+    try{
+        const userId = req.userID;
+
+        const fromEmail = req.body.from;
+
+        const fromUser = await userModel.findOne({email:fromEmail})
+        const toUser = await userModel.findById(userId)
+
+        fromUser.friendList.push(toUser._id)
+        toUser.friendList.push(fromUser._id)
+
+        await fromUser.save()
+        await toUser.save()
+        
+        return  res.json({success:true, message:"Friends added"})
+    } catch(e){
+        res.json({success:false, message:e.message})
+    }
+
+
 
 
 }
@@ -102,7 +156,22 @@ export const acceptFriendRequest = async (req,res)=>{
 export const deleteFriendRequest = async (req,res)=>{
 
     const userId = req.userID;
-    const fromId = req.user
+    const fromEmail = req.body.from;
 
+    try{
 
+        const toUser = await userModel.findById(userId)
+        const fromUser = await userModel.findOne({email:fromEmail})
+
+        toUser.pendingRequests = toUser.pendingRequests.filter(
+            requestId => requestId.toString() !== fromUser._id.toString()
+          );
+
+        await toUser.save()
+
+        res.json({ success: true, message: "Friend request deleted" });
+
+    }catch(e){
+        res.json({ success: false, message: e.message });
+    }
 }

@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema({
     resetOtp: {type: String, default: ''},
     resetOtpExpireAt: {type: Number, default: 0},
     friendList: [{type: mongoose.Schema.ObjectId}],
-    pendingRequests: [{type: mongoose.Schema.ObjectId}]
+    pendingRequests: [{type: mongoose.Schema.ObjectId}],
+    inCall: {type:Boolean, default:false}
 })
 
 const userModel = mongoose.models.user || mongoose.model('user', userSchema)

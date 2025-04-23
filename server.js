@@ -8,11 +8,11 @@ import userRouter from './routes/userRoutes.js';
 import callRouter from './routes/callRouter.js';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import userModel from './models/userModel.js';
 
 const app = express()
 const server = createServer(app)
 const io = new Server(server)
-handleSocketConnections(io)
 
 
 const port = process.env.PORT || 4000
@@ -33,6 +33,21 @@ app.get('/', (req,res)=>res.send("Hello world"));
 app.use('/api/auth',authRouter);
 app.use('/api/user',userRouter);
 app.use('/api/call', callRouter);
+app.get("/updateDb",async (req,res)=>{
+  const result = await userModel.updateMany(
+    {}, // Match all documents
+    {
+      $set: {
+        friendList: [],
+        pendingRequests: [],
+        inCall: false
+      },
+    }
+  );
+
+  return res.json({success:true});
+
+})
 
 server.listen(port,()=>console.log(`Server started on ${port}`))
 export default io;
