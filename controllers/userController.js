@@ -1,13 +1,13 @@
 import userModel from "../models/userModel.js";
 
-export const getUserData = async (req,res)=>{
-    try{
+export const getUserData = async (req, res) => {
+    try {
         // console.log("asdfghjkl;");
         const userId = req.userID;
         const user = await userModel.findById(userId);
 
-        if(!user){
-            return res.json({success: false, message: "User not found"})
+        if (!user) {
+            return res.json({ success: false, message: "User not found" })
         }
 
         res.json({
@@ -19,70 +19,70 @@ export const getUserData = async (req,res)=>{
             }
         });
 
-    }catch(e){
+    } catch (e) {
         console.log("Error fetching user data");
-        res.json({success: false, message: e.message})
+        res.json({ success: false, message: e.message })
     }
 }
 
-export const sendFriendRequest = async (req,res)=>{
+export const sendFriendRequest = async (req, res) => {
     try {
         const userId = req.userID;
         const toEmail = req.body.to;
 
         if (!userId || !toEmail) {
-            return res.json({success:false, message: "Users not found"});
+            return res.json({ success: false, message: "Users not found" });
         }
 
         const fromUser = await userModel.findById(userId);
-        const toUser = await userModel.findOne({email:toEmail});
+        const toUser = await userModel.findOne({ email: toEmail });
 
         // Check if users exist
         if (!fromUser || !toUser) {
-            return res.json({success:false, message: "User not found"});
+            return res.json({ success: false, message: "User not found" });
         }
 
         // Check if already friends
         if (fromUser.friendList.includes(toUser._id)) {
-            return res.json({success:false, message: "Already friends"});
+            return res.json({ success: false, message: "Already friends" });
         }
 
         // Check if request already exists
         if (toUser.pendingRequests.includes(fromUser._id)) {
-            return res.json({success:false, message: "Friend request already sent"});
+            return res.json({ success: false, message: "Friend request already sent" });
         }
 
         toUser.pendingRequests.push(fromUser._id);
         await toUser.save();
 
-        res.json({success:true, message: "Friend request sent successfully"});
-    } catch(e) {
-        res.json({success:false, message: e.message});
+        res.json({ success: true, message: "Friend request sent successfully" });
+    } catch (e) {
+        res.json({ success: false, message: e.message });
     }
 };
 
-export const getFriendList = async (req,res)=>{
+export const getFriendList = async (req, res) => {
 
-    try{
+    try {
         const userId = req.userID;
 
         const user = await userModel.findById(userId);
 
-        if (!user){
-            return res.json({success: false, message: "Couldn't find user"})
+        if (!user) {
+            return res.json({ success: false, message: "Couldn't find user" })
         }
 
         const friendIds = user.friendList;
 
-        if (!friendIds){
-            return res.json({success: false, message: "Couldn't find requests"})
-        } else if(friendIds.length == 0){
-            return res.json({success:false, message: "No friends"})
+        if (!friendIds) {
+            return res.json({ success: false, message: "Couldn't find requests" })
+        } else if (friendIds.length == 0) {
+            return res.json({ success: false, message: "No friends" })
         }
 
         let friendEmails = []
 
-        for (var friendId of friendIds){
+        for (var friendId of friendIds) {
 
             const tuser = await userModel.findById(friendId);
 
@@ -90,29 +90,29 @@ export const getFriendList = async (req,res)=>{
 
         }
 
-        return res.json({success: true, friends: friendEmails});
+        return res.json({ success: true, friends: friendEmails });
 
-    } catch(e){
-        res.json({success: false, message: e.message})
+    } catch (e) {
+        res.json({ success: false, message: e.message })
     }
-    
+
 
 }
 
-export const getFriendRequests = async (req,res)=>{
+export const getFriendRequests = async (req, res) => {
     try {
         const userId = req.userID;
         const user = await userModel.findById(userId);
 
         if (!user) {
-            return res.json({success: false, message: "Couldn't find user"});
+            return res.json({ success: false, message: "Couldn't find user" });
         }
 
         const requestIds = user.pendingRequests;
         const friendIds = user.friendList;
 
         if (!requestIds || requestIds.length === 0) {
-            return res.json({success:true, requests: []});
+            return res.json({ success: true, requests: [] });
         }
 
         // Get unique request emails and filter out friends
@@ -131,21 +131,21 @@ export const getFriendRequests = async (req,res)=>{
             }
         }
 
-        return res.json({success: true, requests: requestEmails});
-    } catch(e) {
-        res.json({success: false, message: e.message});
+        return res.json({ success: true, requests: requestEmails });
+    } catch (e) {
+        res.json({ success: false, message: e.message });
     }
 };
 
-export const acceptFriendRequest = async (req,res)=>{
+export const acceptFriendRequest = async (req, res) => {
 
 
-    try{
+    try {
         const userId = req.userID;
 
         const fromEmail = req.body.from;
 
-        const fromUser = await userModel.findOne({email:fromEmail})
+        const fromUser = await userModel.findOne({ email: fromEmail })
         const toUser = await userModel.findById(userId)
 
         fromUser.friendList.push(toUser._id)
@@ -153,10 +153,14 @@ export const acceptFriendRequest = async (req,res)=>{
 
         await fromUser.save()
         await toUser.save()
-        
-        return  res.json({success:true, message:"Friends added"})
-    } catch(e){
-        res.json({success:false, message:e.message})
+
+        req.body.from = fromEmail;
+        await deleteFriendRequest(req, res);
+
+
+        return res.json({ success: true, message: "Friends added" })
+    } catch (e) {
+        res.json({ success: false, message: e.message })
     }
 
 
@@ -164,32 +168,32 @@ export const acceptFriendRequest = async (req,res)=>{
 
 }
 
-export const deleteFriendRequest = async (req,res)=>{
+export const deleteFriendRequest = async (req, res) => {
     try {
         const userId = req.userID;
         const fromEmail = req.body.from;
 
         if (!userId || !fromEmail) {
-            return res.json({success: false, message: "Missing required fields"});
+            return res.json({ success: false, message: "Missing required fields" });
         }
 
         const toUser = await userModel.findById(userId);
-        const fromUser = await userModel.findOne({email: fromEmail});
+        const fromUser = await userModel.findOne({ email: fromEmail });
 
         if (!toUser || !fromUser) {
-            return res.json({success: false, message: "User not found"});
+            return res.json({ success: false, message: "User not found" });
         }
 
         // Convert both IDs to string for comparison
         const fromUserIdStr = fromUser._id.toString();
-        
+
         // Check if the request exists
         const requestExists = toUser.pendingRequests.some(
             requestId => requestId.toString() === fromUserIdStr
         );
 
         if (!requestExists) {
-            return res.json({success: false, message: "Friend request not found"});
+            return res.json({ success: false, message: "Friend request not found" });
         }
 
         // Remove the request from pending requests
@@ -198,10 +202,10 @@ export const deleteFriendRequest = async (req,res)=>{
         );
 
         await toUser.save();
-        res.json({success: true, message: "Friend request rejected successfully"});
-    } catch(e) {
+        res.json({ success: true, message: "Friend request rejected successfully" });
+    } catch (e) {
         console.error("Error in deleteFriendRequest:", e);
-        res.json({success: false, message: e.message});
+        res.json({ success: false, message: e.message });
     }
 };
 
@@ -219,8 +223,8 @@ export const checkUserExists = async (req, res) => {
             return res.json({ success: false, message: "User not found" });
         }
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             user: {
                 name: user.name,
                 email: user.email
@@ -264,7 +268,7 @@ export const removeFriend = async (req, res) => {
 export const fuzzySearchUsers = async (req, res) => {
     try {
         const { query } = req.body;
-        
+
         if (!query || query.length < 2) {
             return res.json({ success: false, message: "Search query must be at least 2 characters long" });
         }
