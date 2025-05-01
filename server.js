@@ -8,7 +8,9 @@ import userRouter from './routes/userRoutes.js';
 import callRouter from './routes/callRouter.js';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import userModel from './models/usqerModel.js';
+import userModel from './models/userModel.js';
+import socket from '../socket_learn/client/frontend/src/socket.js';
+import { send } from 'vite';
 
 const app = express()
 const server = createServer(app)
@@ -65,7 +67,7 @@ let getRoomId = (sender, receiver)=>{
 
 io.on('connection', (socket)=>{
 
-  console.log('client connected', socket.id);
+  console.log(':client connected', socket.id);
   
   socket.on('joinRoom', async (data)=>{
 
@@ -78,24 +80,20 @@ io.on('connection', (socket)=>{
     let roomId = getRoomId(sender._id.toString(), receiver._id.toString());
 
     socket.join(roomId);
-    console.log(`${sender._id.toString()} joined room ${roomId}`);
+    console.log(`::${senderMail} joined room ${roomId}`);
     
 
   })
 
   socket.on("sendMessage", async (data)=>{
-
     const sender = await userModel.findOne({email: data.sender})
     const receiver = await userModel.findOne({email: data.receiver})
-
     let message = data.message;
-
     let roomId = getRoomId(sender._id.toString(), receiver._id.toString())
-
-    io.to(roomId).emit("receiveMessage", message)
-    console.log("MEssage emitted");
     
-
+    // Emit to everyone in the room EXCEPT the sender
+    socket.to(roomId).emit("receiveMessage", message)
+    console.log(`:::[emitted ${data.sender} -> ${data.receiver}]: ${message}`);
   })
 
 });
