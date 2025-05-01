@@ -8,9 +8,7 @@ import userRouter from './routes/userRoutes.js';
 import callRouter from './routes/callRouter.js';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import userModel from './models/userModel.js';
-import socket from '../socket_learn/client/frontend/src/socket.js';
-import { send } from 'vite';
+import userModel from './models/usqerModel.js';
 
 const app = express()
 const server = createServer(app)
