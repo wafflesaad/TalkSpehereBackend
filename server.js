@@ -90,8 +90,13 @@ io.on('connection', (socket)=>{
     let message = data.message;
     let roomId = getRoomId(sender._id.toString(), receiver._id.toString())
     
-    // Emit to everyone in the room EXCEPT the sender
-    socket.to(roomId).emit("receiveMessage", message)
+    // For video call messages, emit to everyone in the room
+    if (message === "_video_accepted") {
+      io.to(roomId).emit("receiveMessage", message);
+    } else {
+      // For regular messages, emit to everyone except sender
+      socket.to(roomId).emit("receiveMessage", message);
+    }
     console.log(`:::[emitted ${data.sender} -> ${data.receiver}]: ${message}`);
   })
 
