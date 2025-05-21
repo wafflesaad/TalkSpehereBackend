@@ -29,13 +29,14 @@ connectDB();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: ["http://localhost:8080", "http://localhost:8081"],
+  origin: ["http://localhost:8080", "http://localhost:8081","http://localhost:8082", "https://talk-sphere-frontend-green.vercel.app"],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
 
 // Routes
 app.get('/', (req,res)=>res.send("Hello world"));
+app.get('/test', (req,res)=>res.json({res: "ok"}));
 app.use('/api/auth',authRouter);
 app.use('/api/user',userRouter);
 app.use('/api/call', callRouter);
